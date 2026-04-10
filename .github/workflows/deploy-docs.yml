@@ -3,7 +3,7 @@ name: Deploy Docs
 
 on:
   push:
-    branches: [main]
+    branches: [mk-docs-ai]
 
 permissions:
   contents: read
