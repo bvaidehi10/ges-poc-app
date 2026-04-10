@@ -1,0 +1,28 @@
+site_name: GES Audio Processing POC
+site_description: Streamlit + GCP Audio Processing Pipeline Documentation
+repo_url: https://github.com/bvaidehi10/ges-poc-app
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - Overview: overview.md
+  - Architecture: architecture.md
+  - Codebase: code.md
+  - Infrastructure: infra.md
+  - Deployment: deployment.md
+  - Authentication: authentication.md
+  - Troubleshooting: troubleshooting.md
+  - Diagrams: diagrams.md
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - tables
+  - pymdownx.superfences
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid-init.js
