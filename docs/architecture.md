@@ -83,3 +83,71 @@ The following architectural assumptions are reflected in this documentation:
 - the Cloud Run service hosts the Streamlit application
 - Looker Studio is connected to the BigQuery analytics table externally
 - GitHub Pages is used only for publishing documentation, not application delivery
+
+### High-Level Architecture
+
+```mermaid
+graph TB
+    subgraph UI ["User Interface"]
+        USER([👤 User / Agent])
+        STREAMLIT["🖥️ Streamlit App\napp.py"]
+    end
+
+    subgraph GCP ["Google Cloud Platform — Project: ges-poc-490514"]
+        GCS[("☁️ Cloud Storage\nRaw Audio + Transcripts")]
+        STT["🎙️ Speech-to-Text API\nAsync Batch Transcription"]
+        DLP["🔒 Cloud DLP API\nPII Masking"]
+        BQ[("📊 BigQuery\nges_demo dataset")]
+        LOOKER["📈 Looker Studio\nAnalytics Dashboard"]
+        CR["🚀 Cloud Run\nContainerised Deployment"]
+    end
+
+    USER -->|Upload audio file| STREAMLIT
+    STREAMLIT -->|1. Upload .wav/.mp3/.flac| GCS
+    GCS -->|2. GCS URI| STT
+    STT -->|3. JSON transcript| GCS
+    GCS -->|4. Download transcript| STREAMLIT
+    STREAMLIT -->|5. Mask PII| DLP
+    DLP -->|6. Masked text| STREAMLIT
+    STREAMLIT -->|7. Insert rows| BQ
+    BQ -->|8. Data source| LOOKER
+    CR -->|Hosts| STREAMLIT
+
+    style GCP fill:#e8f4f8,stroke:#4285F4
+    style UI fill:#f0f8e8,stroke:#34A853
+```
+
+### Service Interaction Map
+
+```mermaid
+graph LR
+    subgraph Services ["services/ — Python Modules"]
+        CFG["config.py\nProject constants"]
+        AUTH["auth.py\nAccess token helper"]
+        HTTP["http_utils.py\nRetry-enabled session"]
+        GCS_SVC["gcs_service.py\nUpload / Download"]
+        STT_SVC["speech_service.py\nSubmit / Poll"]
+        DLP_SVC["dlp_service.py\nMask PII"]
+        BQ_SVC["bigquery_service.py\nCreate tables / Insert"]
+        PARSE["parsers.py\nTranscript parsing"]
+    end
+
+    APP["app.py\nStreamlit UI + Orchestration"]
+
+    APP --> CFG
+    APP --> GCS_SVC
+    APP --> STT_SVC
+    APP --> DLP_SVC
+    APP --> BQ_SVC
+    APP --> PARSE
+
+    GCS_SVC --> AUTH
+    STT_SVC --> AUTH
+    DLP_SVC --> AUTH
+    BQ_SVC --> AUTH
+
+    AUTH --> HTTP
+    GCS_SVC --> HTTP
+    STT_SVC --> HTTP
+    DLP_SVC --> HTTP
+```
